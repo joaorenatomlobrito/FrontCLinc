@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliniq - Histórico de Exames Médicos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">C</div>
+                Cliniq
+            </a>
+            <div class="header-nav">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <span class="user-name" id="userName">Bem-vindo, Usuário</span>
+                    <button class="btn btn-secondary btn-small" onclick="showPage('perfil')">👤 Perfil</button>
+                    <button class="btn btn-secondary btn-small" onclick="logout()">Sair</button>
+                </div>
+                <div id="authButtons" style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-small" onclick="showPage('login')">Entrar</button>
+                    <button class="btn btn-primary btn-small" onclick="showPage('cadastro')">Criar Conta</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <button id="backButton" class="back-button hidden" onclick="goBack()">
+            <span>← Voltar</span>
+        </button>
+
+      
+        <div id="home-page" class="page">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div>
+                        <h1 class="card-title">Meus Exames</h1>
+                        <p class="card-description">Gerenciando <span id="examCount">0</span> exame(s)</p>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="showPage('novo-exame')" style="display: none;" id="btnNovoExame">+ Novo Exame</button>
+                </div>
+
+            
+                <div class="category-cards" id="categoryCardsContainer" style="display: none;">
+                    <a href="#" class="category-card blood" onclick="filterHomeCategory('sangue', event)">
+                        <div class="category-icon-large">🩸</div>
+                        <div class="category-title">Exames de Sangue</div>
+                        <div class="category-description">Hemograma, Glicose, Perfil Lipídico...</div>
+                        <div class="category-count" id="bloodCount">0 exames</div>
+                    </a>
+
+                    <a href="#" class="category-card urine" onclick="filterHomeCategory('urina', event)">
+                        <div class="category-icon-large">🧪</div>
+                        <div class="category-title">Exames de Urina</div>
+                        <div class="category-description">Urinálise, Teste de Proteína...</div>
+                        <div class="category-count" id="urineCount">0 exames</div>
+                    </a>
+
+                    <a href="#" class="category-card image" onclick="filterHomeCategory('imagem', event)">
+                        <div class="category-icon-large">🖼️</div>
+                        <div class="category-title">Exames de Imagem</div>
+                        <div class="category-description">Ultrassom, Radiografia, Tomografia...</div>
+                        <div class="category-count" id="imageCount">0 exames</div>
+                    </a>
+                </div>
+
+                <div id="examsList" class="grid grid-2">
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">Nenhum exame registrado</div>
+                        <p class="empty-description">Comece adicionando seu primeiro exame ao sistema.</p>
+                        <button class="btn btn-primary" onclick="showPage('novo-exame')" style="display: none;" id="btnAddFirst">Adicionar Primeiro Exame</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+        <div id="login-page" class="page hidden">
+            <div class="card" style="max-width: 500px; margin: 2rem auto;">
+                <h2 class="card-title mb-3">Fazer Login</h2>
+                <p class="card-description mb-4">Acesse sua conta para gerenciar seus exames médicos</p>
+
+                <div id="loginAlert" class="alert alert-error hidden mb-3" style="display: none;">
+                    <span id="loginAlertText"></span>
+                </div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email *</label>
+                        <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Senha *</label>
+                        <div style="position: relative;">
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                            <button type="button" style="position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer;" onclick="togglePassword('loginPassword')">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe" style="margin: 0;">Lembrar-me neste dispositivo</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Entrar</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1rem;">
+                    <p class="text-gray">Não tem uma conta? <a href="#" onclick="showPage('cadastro')" style="color: var(--primary-color); text-decoration: none;">Criar conta</a></p>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="cadastro-page" class="page hidden">
+            <div class="card" style="max-width: 700px; margin: 2rem auto;">
+                <h2 class="card-title mb-3">Criar Conta</h2>
+                <p class="card-description mb-4">Preencha suas informações pessoais e médicas</p>
+
+                <div id="cadastroAlert" class="alert alert-error hidden mb-3" style="display: none;">
+                    <span id="cadastroAlertText"></span>
+                </div>
+
+                <form onsubmit="handleCadastro(event)">
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informações Pessoais</h3>
+
+                    <div class="form-group">
+                        <label for="cadastroEmail">Email *</label>
+                        <input type="email" id="cadastroEmail" placeholder="seu@email.com" required>
+                        <p class="form-hint">Usaremos este email para fazer login na sua conta.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cadastroNome">Nome Completo *</label>
+                        <input type="text" id="cadastroNome" placeholder="João Silva" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cadastroNomeSocial">Nome Social</label>
+                        <input type="text" id="cadastroNomeSocial" placeholder="Como você prefere ser chamado">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cadastroConfirmEmail">Confirmar Email *</label>
+                        <input type="email" id="cadastroConfirmEmail" placeholder="seu@email.com" required>
+                        <p class="form-hint">Digite o mesmo email para confirmar.</p>
+                    </div>
+
+                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informações Médicas</h3>
+
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="cadastroIdade">Idade *</label>
+                            <input type="number" id="cadastroIdade" placeholder="Ex: 30" min="0" max="150" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cadastroSexo">Sexo *</label>
+                            <select id="cadastroSexo" required>
+                                <option value="">Selecione</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="cadastroTipoSanguineo">Tipo Sanguíneo</label>
+                            <select id="cadastroTipoSanguineo">
+                                <option value="">Não informado</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cadastroAlergias">Alergias</label>
+                            <input type="text" id="cadastroAlergias" placeholder="Ex: Penicilina, Latex">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Criar Conta</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1rem;">
+                    <p class="text-gray">Já tem uma conta? <a href="#" onclick="showPage('login')" style="color: var(--primary-color); text-decoration: none;">Entrar</a></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="novo-exame-page" class="page hidden">
+            <div class="card" style="max-width: 700px; margin: 0 auto;">
+                <h2 class="card-title mb-1">Novo Exame</h2>
+                <p class="card-description mb-4">Preencha os dados do seu exame médico</p>
+
+                <div id="novoExameAlert" class="alert alert-error hidden mb-3" style="display: none;">
+                    <span id="novoExameAlertText"></span>
+                </div>
+
+                <form onsubmit="handleNovoExame(event)">
+                    <div class="form-group">
+                        <label>Categoria de Exame</label>
+                        <div class="category-filter" style="margin-top: 0.5rem;">
+                            <button type="button" class="category-btn active" onclick="filterCategory('todos', event)">
+                                <span class="category-icon">📋</span>
+                                <span>Todos</span>
+                            </button>
+                            <button type="button" class="category-btn" onclick="filterCategory('sangue', event)">
+                                <span class="category-icon">🩸</span>
+                                <span>Sangue</span>
+                            </button>
+                            <button type="button" class="category-btn" onclick="filterCategory('urina', event)">
+                                <span class="category-icon">🧪</span>
+                                <span>Urina</span>
+                            </button>
+                            <button type="button" class="category-btn" onclick="filterCategory('imagem', event)">
+                                <span class="category-icon">🖼️</span>
+                                <span>Imagem</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="examType">Tipo de Exame *</label>
+                        <select id="examType" required>
+                            <option value="">Selecione o tipo de exame</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="examDate">Data do Exame *</label>
+                        <input type="date" id="examDate" required>
+                        <p class="form-hint">Selecione a data em que o exame foi realizado</p>
+                    </div>
+
+                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informações Adicionais (Opcional)</h3>
+
+                    <div class="form-group">
+                        <label for="clinic">Clínica/Hospital</label>
+                        <input type="text" id="clinic" placeholder="Ex: Hospital Santa Maria">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctor">Médico Responsável</label>
+                        <input type="text" id="doctor" placeholder="Ex: Dr. João Silva">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Observações</label>
+                        <textarea id="notes" placeholder="Adicione observações sobre o exame, sintomas, medicações em uso, etc..."></textarea>
+                    </div>
+
+                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">📎 Digitalização do Exame</h3>
+
+                    <div class="form-group">
+                        <label>Anexar Arquivo(s)</label>
+                        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
+                            <div class="file-upload-icon">📁</div>
+                            <div class="file-upload-text">Clique para selecionar ou arraste arquivos aqui</div>
+                            <div class="file-upload-hint">Formatos: PDF, JPG, PNG, TIFF (máx. 10MB por arquivo)</div>
+                        </div>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff" onchange="handleFileSelect(event)">
+                        <div id="fileList" class="file-list"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Criar Exame</button>
+                        <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="goBack()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="meus-exames-page" class="page hidden">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Meus Exames</h2>
+                        <p class="card-description" id="examsCountText">0 exame(s)</p>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="showPage('novo-exame')">+ Novo Exame</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Filtrar por Categoria</label>
+                    <div class="category-filter">
+                        <button type="button" class="category-btn active" onclick="filterExamCategory('todos', event)">
+                            <span class="category-icon">📋</span>
+                            <span>Todos</span>
+                        </button>
+                        <button type="button" class="category-btn" onclick="filterExamCategory('sangue', event)">
+                            <span class="category-icon">🩸</span>
+                            <span>Sangue</span>
+                        </button>
+                        <button type="button" class="category-btn" onclick="filterExamCategory('urina', event)">
+                            <span class="category-icon">🧪</span>
+                            <span>Urina</span>
+                        </button>
+                        <button type="button" class="category-btn" onclick="filterExamCategory('imagem', event)">
+                            <span class="category-icon">🖼️</span>
+                            <span>Imagem</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="allExamsList" class="grid grid-2">
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">Nenhum exame registrado</div>
+                        <p class="empty-description">Você ainda não tem exames registrados.</p>
+                        <button class="btn btn-primary" onclick="showPage('novo-exame')">Adicionar Exame</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="perfil-page" class="page hidden">
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div class="card-header">
+                    <h2 class="card-title">Meu Perfil</h2>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-button active" onclick="switchTab('perfil-info', event)">👤 Perfil</button>
+                    <button class="tab-button" onclick="switchTab('perfil-saude', event)">⚕️ Saúde</button>
+                    <button class="tab-button" onclick="switchTab('perfil-seguranca', event)">🔒 Segurança</button>
+                    <button class="tab-button" onclick="switchTab('perfil-conta', event)">⚙️ Conta</button>
+                </div>
+
+                <div id="perfil-info" class="tab-content active">
+                    <div id="profileAlert" class="alert alert-success hidden mb-3" style="display: none;">
+                        <span id="profileAlertText"></span>
+                    </div>
+
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; align-items: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), #1e40af); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold;">👤</div>
+                        <div>
+                            <h3 class="card-title" id="profileName">Usuário</h3>
+                            <p class="text-gray" id="profileEmail">usuario@email.com</p>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informações Pessoais</h3>
+
+                    <div class="grid grid-2">
+                        <div>
+                            <p class="text-sm text-gray">Nome Completo</p>
+                            <p class="font-semibold" id="profileNameDisplay">Usuário</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray">Email</p>
+                            <p class="font-semibold" id="profileEmailDisplay">usuario@email.com</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-2" style="margin-top: 1rem;">
+                        <div>
+                            <p class="text-sm text-gray">Nome Social</p>
+                            <p class="font-semibold" id="profileNomeSocialDisplay">Não informado</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray">Idade</p>
+                            <p class="font-semibold" id="profileIdadeDisplay">Não informado</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-2" style="margin-top: 1rem;">
+                        <div>
+                            <p class="text-sm text-gray">Sexo</p>
+                            <p class="font-semibold" id="profileSexoDisplay">Não informado</p>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem;" onclick="editProfile()">Editar Informações Pessoais</button>
+                </div>
+
+                <div id="perfil-saude" class="tab-content">
+                    <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1.5rem;">Dados Médicos</h3>
+
+                    <div class="medical-data-item">
+                        <div>
+                            <div class="medical-data-label">🩸 Tipo Sanguíneo</div>
+                            <div class="medical-data-value" id="bloodTypeDisplay"><span class="medical-data-empty">Não informado</span></div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="editMedicalData('bloodType')">Editar</button>
+                    </div>
+
+                    <div class="medical-data-item">
+                        <div>
+                            <div class="medical-data-label">⚠️ Alergias</div>
+                            <div class="medical-data-value" id="allergiesDisplay"><span class="medical-data-empty">Não informado</span></div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="editMedicalData('allergies')">Editar</button>
+                    </div>
+
+                    <div class="medical-data-item">
+                        <div>
+                            <div class="medical-data-label">💊 Medicações em Uso</div>
+                            <div class="medical-data-value" id="medicationsDisplay"><span class="medical-data-empty">Não informado</span></div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="editMedicalData('medications')">Editar</button>
+                    </div>
+
+                    <div class="medical-data-item">
+                        <div>
+                            <div class="medical-data-label">📋 Condições de Saúde</div>
+                            <div class="medical-data-value" id="conditionsDisplay"><span class="medical-data-empty">Não informado</span></div>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-small" onclick="editMedicalData('conditions')">Editar</button>
+                    </div>
+                </div>
+
+                <div id="perfil-seguranca" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="font-weight: 600;">Alterar Senha</h4>
+                            <p class="text-sm text-gray">Altere sua senha regularmente para manter sua conta segura</p>
+                        </div>
+                        <button class="btn btn-secondary btn-small">Alterar</button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="font-weight: 600;">Autenticação de Dois Fatores</h4>
+                            <p class="text-sm text-gray">Adicione uma camada extra de segurança à sua conta</p>
+                        </div>
+                        <button class="btn btn-secondary btn-small">Configurar</button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div>
+                            <h4 style="font-weight: 600;">Sessões Ativas</h4>
+                            <p class="text-sm text-gray">Gerencie seus dispositivos conectados</p>
+                        </div>
+                        <button class="btn btn-secondary btn-small">Gerenciar</button>
+                    </div>
+                </div>
+
+                <div id="perfil-conta" class="tab-content">
+                    <div class="card" style="border: none; padding: 0; margin-bottom: 2rem;">
+                        <h3 class="card-title" style="font-size: 1.1rem; margin-bottom: 1rem;">Informações da Conta</h3>
+                        <div class="grid grid-2">
+                            <div>
+                                <p class="text-sm text-gray">Data de Criação</p>
+                                <p class="font-semibold" id="accountCreated">Não informado</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray">Último Acesso</p>
+                                <p class="font-semibold" id="accountLastLogin">Não informado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; padding: 1.5rem;">
+                        <h3 class="card-title" style="font-size: 1.1rem; color: #991b1b; margin-bottom: 1rem;">Zona de Perigo</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background-color: white; border: 1px solid #fecaca; border-radius: 6px;">
+                            <div>
+                                <h4 style="font-weight: 600; color: #991b1b;">Fazer Logout</h4>
+                                <p class="text-sm" style="color: #991b1b;">Você será desconectado de todos os seus dispositivos</p>
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="logout()">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Editar Perfil</div>
+            <div class="modal-body">
+                <form onsubmit="handleEditProfile(event)">
+                    <div class="form-group">
+                        <label for="editName">Nome Completo</label>
+                        <input type="text" id="editName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editNomeSocial">Nome Social</label>
+                        <input type="text" id="editNomeSocial">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editIdade">Idade</label>
+                        <input type="number" id="editIdade" min="0" max="150">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editSexo">Sexo</label>
+                        <select id="editSexo">
+                            <option value="">Não informado</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="feminino">Feminino</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail" disabled style="background-color: #f3f4f6;">
+                        <p class="form-hint">O email não pode ser alterado. Entre em contato com o suporte se precisar mudar.</p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="editMedicalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="medicalModalTitle">Editar Dado Médico</div>
+            <div class="modal-body">
+                <form onsubmit="handleEditMedicalData(event)">
+                    <div class="form-group">
+                        <label for="medicalInput" id="medicalInputLabel">Valor</label>
+                        <input type="text" id="medicalInput" placeholder="Digite o valor" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeMedicalModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let exams = [];
+        let examTypes = [];
+        let currentCategory = 'todos';
+        let currentExamCategory = 'todos';
+        let homeCategory = 'todos';
+        let pageHistory = ['home'];
+        let currentMedicalField = null;
+        let selectedFiles = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExamTypes();
+            loadUserData();
+            setMaxDate();
+            setupFileUpload();
+        });
+
+        function setupFileUpload() {
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('dragover');
+            });
+
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            });
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showAlert('novoExameAlert', 'novoExameAlertText', `Arquivo ${file.name} é muito grande (máx 10MB)`, 'error');
+                    continue;
+                }
+
+                const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
+                if (!validTypes.includes(file.type)) {
+                    showAlert('novoExameAlert', 'novoExameAlertText', `Tipo de arquivo ${file.name} não suportado`, 'error');
+                    continue;
+                }
+
+                selectedFiles.push(file);
+            }
+
+            updateFileList();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📄</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${(file.size / 1024).toFixed(2)} KB</div>
+                        </div>
+                    </div>
+                    <button type="button" class="file-remove-btn" onclick="removeFile(${index})">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        function loadExamTypes() {
+            examTypes = [
+                { id: 1, name: 'Hemograma Completo', category: 'sangue', description: 'Análise completa de células do sangue' },
+                { id: 2, name: 'Teste de Glicose', category: 'sangue', description: 'Medição de níveis de glicose no sangue' },
+                { id: 3, name: 'Perfil Lipídico', category: 'sangue', description: 'Análise de colesterol e triglicerídeos' },
+                { id: 4, name: 'Teste de Coagulação', category: 'sangue', description: 'Avaliação da capacidade de coagulação do sangue' },
+                { id: 5, name: 'Função Hepática', category: 'sangue', description: 'Testes de função do fígado' },
+                { id: 6, name: 'Função Renal', category: 'sangue', description: 'Testes de função dos rins' },
+                { id: 7, name: 'Urinálise Completa', category: 'urina', description: 'Análise química e microscópica da urina' },
+                { id: 8, name: 'Teste de Proteína na Urina', category: 'urina', description: 'Detecção de proteína na urina' },
+                { id: 9, name: 'Teste de Glicose na Urina', category: 'urina', description: 'Detecção de glicose na urina' },
+                { id: 10, name: 'Ultrassom Abdominal', category: 'imagem', description: 'Imagem ultrassonográfica do abdômen' },
+                { id: 11, name: 'Radiografia de Tórax', category: 'imagem', description: 'Imagem radiográfica do tórax' },
+                { id: 12, name: 'Tomografia Computadorizada', category: 'imagem', description: 'Imagem de tomografia de alta resolução' },
+            ];
+        }
+
+        function loadUserData() {
+            const userData = localStorage.getItem('cliniqUser');
+            const examsData = localStorage.getItem('cliniqExams');
+            
+            if (userData) {
+                currentUser = JSON.parse(userData);
+                updateUserUI();
+            }
+            
+            if (examsData) {
+                exams = JSON.parse(examsData);
+                updateExamsList();
+            }
+        }
+
+        function saveUserData() {
+            localStorage.setItem('cliniqUser', JSON.stringify(currentUser));
+        }
+
+        function saveExamsData() {
+            localStorage.setItem('cliniqExams', JSON.stringify(exams));
+        }
+
+        function updateUserUI() {
+            if (currentUser) {
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userName').textContent = `Bem-vindo, ${currentUser.name}`;
+                document.getElementById('profileName').textContent = currentUser.name;
+                document.getElementById('profileEmail').textContent = currentUser.email;
+                document.getElementById('profileNameDisplay').textContent = currentUser.name;
+                document.getElementById('profileEmailDisplay').textContent = currentUser.email;
+                document.getElementById('profileNomeSocialDisplay').textContent = currentUser.nomeSocial || 'Não informado';
+                document.getElementById('profileIdadeDisplay').textContent = currentUser.idade || 'Não informado';
+                document.getElementById('profileSexoDisplay').textContent = currentUser.sexo ? (currentUser.sexo.charAt(0).toUpperCase() + currentUser.sexo.slice(1)) : 'Não informado';
+                document.getElementById('btnNovoExame').style.display = 'inline-block';
+                document.getElementById('btnAddFirst').style.display = 'inline-block';
+                document.getElementById('categoryCardsContainer').style.display = 'grid';
+                updateMedicalDataDisplay();
+                updateCategoryCounts();
+                showPage('home');
+            } else {
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('authButtons').style.display = 'flex';
+                document.getElementById('btnNovoExame').style.display = 'none';
+                document.getElementById('btnAddFirst').style.display = 'none';
+                document.getElementById('categoryCardsContainer').style.display = 'none';
+                showPage('home');
+            }
+        }
+
+        function updateCategoryCounts() {
+            const bloodCount = exams.filter(e => e.category === 'sangue').length;
+            const urineCount = exams.filter(e => e.category === 'urina').length;
+            const imageCount = exams.filter(e => e.category === 'imagem').length;
+
+            document.getElementById('bloodCount').textContent = `${bloodCount} ${bloodCount === 1 ? 'exame' : 'exames'}`;
+            document.getElementById('urineCount').textContent = `${urineCount} ${urineCount === 1 ? 'exame' : 'exames'}`;
+            document.getElementById('imageCount').textContent = `${imageCount} ${imageCount === 1 ? 'exame' : 'exames'}`;
+        }
+
+        function updateMedicalDataDisplay() {
+            if (currentUser && currentUser.medicalData) {
+                document.getElementById('bloodTypeDisplay').innerHTML = currentUser.medicalData.bloodType || '<span class="medical-data-empty">Não informado</span>';
+                document.getElementById('allergiesDisplay').innerHTML = currentUser.medicalData.allergies || '<span class="medical-data-empty">Não informado</span>';
+                document.getElementById('medicationsDisplay').innerHTML = currentUser.medicalData.medications || '<span class="medical-data-empty">Não informado</span>';
+                document.getElementById('conditionsDisplay').innerHTML = currentUser.medicalData.conditions || '<span class="medical-data-empty">Não informado</span>';
+                document.getElementById('accountCreated').textContent = currentUser.createdAt || 'Não informado';
+                document.getElementById('accountLastLogin').textContent = currentUser.lastSignedIn || 'Não informado';
+            }
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            const page = document.getElementById(pageName + '-page');
+            if (page) {
+                page.classList.remove('hidden');
+            }
+
+            if (pageHistory[pageHistory.length - 1] !== pageName) {
+                pageHistory.push(pageName);
+            }
+
+            const backButton = document.getElementById('backButton');
+            if (pageHistory.length > 1 && pageName !== 'home') {
+                backButton.classList.remove('hidden');
+            } else {
+                backButton.classList.add('hidden');
+            }
+
+            if (pageName === 'novo-exame') {
+                selectedFiles = [];
+                updateFileList();
+            }
+        }
+
+        function goBack() {
+            if (pageHistory.length > 1) {
+                pageHistory.pop();
+                const previousPage = pageHistory[pageHistory.length - 1];
+                showPage(previousPage);
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showAlert('loginAlert', 'loginAlertText', 'Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+
+            currentUser = {
+                id: 1,
+                name: email.split('@')[0],
+                email: email,
+                createdAt: new Date().toLocaleDateString('pt-BR'),
+                lastSignedIn: new Date().toLocaleDateString('pt-BR'),
+                medicalData: {}
+            };
+
+            saveUserData();
+            updateUserUI();
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            showAlert('loginAlert', 'loginAlertText', 'Login realizado com sucesso!', 'success');
+            setTimeout(() => showPage('home'), 500);
+        }
+
+        function handleCadastro(event) {
+            event.preventDefault();
+            const email = document.getElementById('cadastroEmail').value;
+            const nome = document.getElementById('cadastroNome').value;
+            const nomeSocial = document.getElementById('cadastroNomeSocial').value;
+            const confirmEmail = document.getElementById('cadastroConfirmEmail').value;
+            const idade = document.getElementById('cadastroIdade').value;
+            const sexo = document.getElementById('cadastroSexo').value;
+            const tipoSanguineo = document.getElementById('cadastroTipoSanguineo').value;
+            const alergias = document.getElementById('cadastroAlergias').value;
+
+            if (!email || !nome || !confirmEmail || !idade || !sexo) {
+                showAlert('cadastroAlert', 'cadastroAlertText', 'Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            if (email !== confirmEmail) {
+                showAlert('cadastroAlert', 'cadastroAlertText', 'Os emails não correspondem.', 'error');
+                return;
+            }
+
+            if (nome.length < 3) {
+                showAlert('cadastroAlert', 'cadastroAlertText', 'O nome deve ter pelo menos 3 caracteres.', 'error');
+                return;
+            }
+
+            currentUser = {
+                id: 1,
+                name: nome,
+                nomeSocial: nomeSocial,
+                email: email,
+                idade: parseInt(idade),
+                sexo: sexo,
+                createdAt: new Date().toLocaleDateString('pt-BR'),
+                lastSignedIn: new Date().toLocaleDateString('pt-BR'),
+                medicalData: {
+                    bloodType: tipoSanguineo,
+                    allergies: alergias
+                }
+            };
+
+            saveUserData();
+            updateUserUI();
+            document.getElementById('cadastroEmail').value = '';
+            document.getElementById('cadastroNome').value = '';
+            document.getElementById('cadastroNomeSocial').value = '';
+            document.getElementById('cadastroConfirmEmail').value = '';
+            document.getElementById('cadastroIdade').value = '';
+            document.getElementById('cadastroSexo').value = '';
+            document.getElementById('cadastroTipoSanguineo').value = '';
+            document.getElementById('cadastroAlergias').value = '';
+            showAlert('cadastroAlert', 'cadastroAlertText', 'Conta criada com sucesso!', 'success');
+            setTimeout(() => showPage('home'), 500);
+        }
+
+        function handleNovoExame(event) {
+            event.preventDefault();
+            
+            if (!currentUser) {
+                showAlert('novoExameAlert', 'novoExameAlertText', 'Você precisa estar autenticado.', 'error');
+                return;
+            }
+
+            const examTypeId = document.getElementById('examType').value;
+            const examDate = document.getElementById('examDate').value;
+            const clinic = document.getElementById('clinic').value;
+            const doctor = document.getElementById('doctor').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!examTypeId || !examDate) {
+                showAlert('novoExameAlert', 'novoExameAlertText', 'Por favor, preencha os campos obrigatórios.', 'error');
+                return;
+            }
+
+            const examType = examTypes.find(t => t.id == examTypeId);
+            
+            let fileData = [];
+            if (selectedFiles.length > 0) {
+                selectedFiles.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        fileData.push({
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            data: e.target.result
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            setTimeout(() => {
+                const newExam = {
+                    id: exams.length + 1,
+                    examTypeId: parseInt(examTypeId),
+                    examTypeName: examType.name,
+                    category: examType.category,
+                    examDate: examDate,
+                    clinic: clinic,
+                    doctor: doctor,
+                    notes: notes,
+                    files: fileData,
+                    status: 'completed',
+                    createdAt: new Date().toISOString()
+                };
+
+                exams.push(newExam);
+                saveExamsData();
+                updateExamsList();
+                updateCategoryCounts();
+                
+                document.getElementById('examType').value = '';
+                document.getElementById('examDate').value = '';
+                document.getElementById('clinic').value = '';
+                document.getElementById('doctor').value = '';
+                document.getElementById('notes').value = '';
+                selectedFiles = [];
+                updateFileList();
+                
+                showAlert('novoExameAlert', 'novoExameAlertText', 'Exame adicionado com sucesso!', 'success');
+                setTimeout(() => goBack(), 500);
+            }, 100);
+        }
+
+        function updateExamsList() {
+            const examsList = document.getElementById('examsList');
+            const allExamsList = document.getElementById('allExamsList');
+            document.getElementById('examCount').textContent = exams.length;
+            document.getElementById('examsCountText').textContent = `${exams.length} exame(s)`;
+
+            if (exams.length === 0) {
+                examsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">Nenhum exame registrado</div>
+                        <p class="empty-description">Comece adicionando seu primeiro exame ao sistema.</p>
+                    </div>
+                `;
+                allExamsList.innerHTML = examsList.innerHTML;
+                return;
+            }
+
+            const filteredExams = homeCategory === 'todos' 
+                ? exams 
+                : exams.filter(e => e.category === homeCategory);
+
+            const filteredAllExams = currentExamCategory === 'todos' 
+                ? exams 
+                : exams.filter(e => e.category === currentExamCategory);
+
+            let html = '';
+            filteredExams.forEach(exam => {
+                const statusClass = `status-${exam.status}`;
+                const statusText = exam.status === 'completed' ? 'Completo' : exam.status === 'reviewed' ? 'Revisado' : 'Pendente';
+                
+                let filesHtml = '';
+                if (exam.files && exam.files.length > 0) {
+                    filesHtml = `
+                        <div class="exam-files">
+                            <div class="exam-files-label">📎 Arquivos anexados: ${exam.files.length}</div>
+                            ${exam.files.map((file, idx) => `
+                                <a href="${file.data}" download="${file.name}" class="exam-file-link">📄 ${file.name}</a>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    <div class="exam-item">
+                        <div class="exam-info">
+                            <div class="exam-type">${getCategoryIcon(exam.category)} ${exam.examTypeName}</div>
+                            <div class="exam-date">${new Date(exam.examDate).toLocaleDateString('pt-BR')}</div>
+                            <div class="exam-details">
+                                ${exam.clinic ? `<div class="exam-detail-item"><span class="exam-detail-label">Clínica:</span> ${exam.clinic}</div>` : ''}
+                                ${exam.doctor ? `<div class="exam-detail-item"><span class="exam-detail-label">Médico:</span> ${exam.doctor}</div>` : ''}
+                            </div>
+                            ${filesHtml}
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            });
+
+            let allHtml = '';
+            filteredAllExams.forEach(exam => {
+                const statusClass = `status-${exam.status}`;
+                const statusText = exam.status === 'completed' ? 'Completo' : exam.status === 'reviewed' ? 'Revisado' : 'Pendente';
+                
+                let filesHtml = '';
+                if (exam.files && exam.files.length > 0) {
+                    filesHtml = `
+                        <div class="exam-files">
+                            <div class="exam-files-label">📎 Arquivos anexados: ${exam.files.length}</div>
+                            ${exam.files.map((file, idx) => `
+                                <a href="${file.data}" download="${file.name}" class="exam-file-link">📄 ${file.name}</a>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                
+                allHtml += `
+                    <div class="exam-item">
+                        <div class="exam-info">
+                            <div class="exam-type">${getCategoryIcon(exam.category)} ${exam.examTypeName}</div>
+                            <div class="exam-date">${new Date(exam.examDate).toLocaleDateString('pt-BR')}</div>
+                            <div class="exam-details">
+                                ${exam.clinic ? `<div class="exam-detail-item"><span class="exam-detail-label">Clínica:</span> ${exam.clinic}</div>` : ''}
+                                ${exam.doctor ? `<div class="exam-detail-item"><span class="exam-detail-label">Médico:</span> ${exam.doctor}</div>` : ''}
+                            </div>
+                            ${filesHtml}
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            });
+
+            examsList.innerHTML = html || '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nenhum exame nesta categoria</div></div>';
+            allExamsList.innerHTML = allHtml || '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nenhum exame nesta categoria</div></div>';
+        }
+
+        function filterHomeCategory(category, event) {
+            event.preventDefault();
+            homeCategory = category;
+            updateExamsList();
+        }
+
+        function filterCategory(category, event) {
+            event.preventDefault();
+            currentCategory = category;
+            updateExamTypeSelect();
+            
+            document.querySelectorAll('#novo-exame-page .category-filter .category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.category-btn').classList.add('active');
+        }
+
+        function filterExamCategory(category, event) {
+            event.preventDefault();
+            currentExamCategory = category;
+            updateExamsList();
+            
+            document.querySelectorAll('#meus-exames-page .category-filter .category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.category-btn').classList.add('active');
+        }
+
+        function updateExamTypeSelect() {
+            const select = document.getElementById('examType');
+            const filtered = currentCategory === 'todos' 
+                ? examTypes 
+                : examTypes.filter(t => t.category === currentCategory);
+
+            select.innerHTML = '<option value="">Selecione o tipo de exame</option>';
+            filtered.forEach(type => {
+                select.innerHTML += `<option value="${type.id}">${type.name}</option>`;
+            });
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'sangue': '🩸',
+                'urina': '🧪',
+                'imagem': '🖼️'
+            };
+            return icons[category] || '📋';
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function setMaxDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('examDate').max = today;
+        }
+
+        function showAlert(alertId, textId, message, type) {
+            const alert = document.getElementById(alertId);
+            const text = document.getElementById(textId);
+            alert.className = `alert alert-${type}`;
+            text.textContent = message;
+            alert.style.display = 'flex';
+        }
+
+        function switchTab(tabName, event) {
+            event.preventDefault();
+            
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function editProfile() {
+            if (currentUser) {
+                document.getElementById('editName').value = currentUser.name;
+                document.getElementById('editNomeSocial').value = currentUser.nomeSocial || '';
+                document.getElementById('editIdade').value = currentUser.idade || '';
+                document.getElementById('editSexo').value = currentUser.sexo || '';
+                document.getElementById('editEmail').value = currentUser.email;
+                document.getElementById('editProfileModal').classList.add('active');
+            }
+        }
+
+        function handleEditProfile(event) {
+            event.preventDefault();
+            const name = document.getElementById('editName').value;
+            
+            if (name.length < 3) {
+                alert('O nome deve ter pelo menos 3 caracteres.');
+                return;
+            }
+
+            currentUser.name = name;
+            currentUser.nomeSocial = document.getElementById('editNomeSocial').value;
+            currentUser.idade = document.getElementById('editIdade').value ? parseInt(document.getElementById('editIdade').value) : null;
+            currentUser.sexo = document.getElementById('editSexo').value;
+            saveUserData();
+            updateUserUI();
+            closeEditModal();
+            showAlert('profileAlert', 'profileAlertText', 'Perfil atualizado com sucesso!', 'success');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        }
+
+        function editMedicalData(field) {
+            currentMedicalField = field;
+            const labels = {
+                'bloodType': 'Tipo Sanguíneo',
+                'allergies': 'Alergias',
+                'medications': 'Medicações em Uso',
+                'conditions': 'Condições de Saúde'
+            };
+            
+            document.getElementById('medicalModalTitle').textContent = `Editar ${labels[field]}`;
+            document.getElementById('medicalInputLabel').textContent = labels[field];
+            document.getElementById('medicalInput').value = (currentUser.medicalData && currentUser.medicalData[field]) || '';
+            document.getElementById('editMedicalModal').classList.add('active');
+        }
+
+        function handleEditMedicalData(event) {
+            event.preventDefault();
+            const value = document.getElementById('medicalInput').value;
+            
+            if (!currentUser.medicalData) {
+                currentUser.medicalData = {};
+            }
+            
+            currentUser.medicalData[currentMedicalField] = value;
+            saveUserData();
+            updateMedicalDataDisplay();
+            closeMedicalModal();
+            showAlert('profileAlert', 'profileAlertText', 'Dado médico atualizado com sucesso!', 'success');
+        }
+
+        function closeMedicalModal() {
+            document.getElementById('editMedicalModal').classList.remove('active');
+        }
+
+        
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('cliniqUser');
+            pageHistory = ['home'];
+            updateUserUI();
+        }
+
+        document.addEventListener('click', function(event) {
+            const profileModal = document.getElementById('editProfileModal');
+            const medicalModal = document.getElementById('editMedicalModal');
+            
+            if (event.target === profileModal) {
+                closeEditModal();
+            }
+            if (event.target === medicalModal) {
+                closeMedicalModal();
+            }
+        });
+    </script>
+</body>
+</html>
